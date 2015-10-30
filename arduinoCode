@@ -1,0 +1,68 @@
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+int counter = 0;
+const int switchPin = 7;
+const int greenLEDPin = 6;
+const int redLEDPin = 10;
+const int blueLEDPin = 9;
+int switchState = LOW;
+int prevSwitchState = LOW;
+
+void setup() {
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(blueLEDPin, OUTPUT);
+  pinMode(redLEDPin, OUTPUT);
+  lcd.begin(16, 2);
+  pinMode(switchPin, INPUT);
+  lcd.print("Push the button");
+  lcd.setCursor(0, 1);
+  lcd.print("for the forecast");
+  Serial.begin(9600);
+  while(!Serial);
+
+  while (digitalRead(switchPin) == LOW);
+  switchState = !digitalRead(switchPin);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Checking the");
+  lcd.setCursor(0, 1);
+  lcd.print("swell");
+  delay(500);
+  lcd.print(".");
+  delay(500);
+  lcd.print(".");
+  delay(500);
+  lcd.print(".");
+  delay(500);
+  if (Serial.available()) {
+    char c = Serial.read();
+    if (c == 'p') {
+      analogWrite(blueLEDPin, 255);
+    } else if (c == 'f') {
+      analogWrite(greenLEDPin, 255);
+    } else if (c = 'g') {
+      analogWrite(redLEDPin, 30);
+      analogWrite(greenLEDPin, 255);
+    }
+  }
+  lcd.clear();
+  Serial.println("1");
+  Serial.flush();
+}
+
+void loop() {
+  while (digitalRead(switchPin) == switchState);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  /* Next query to surfcheck.py --> WINDS*/
+  while(Serial.available()) {
+    char c = Serial.read();
+    lcd.write(c);
+    if (c == ':') {
+      lcd.setCursor(0,1);
+    }
+  }
+  delay(1000);
+  Serial.println("1");
+  Serial.flush();
+}
